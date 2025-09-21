@@ -1,0 +1,49 @@
+import numpy as np
+from scipy.integrate import odeint
+import matplotlib.pyplot as plt
+
+k = -0.1281
+
+T0 = 29.94
+
+t = np.linspace(0, 24, 1000)
+
+def Ta_c(t):
+
+    return 29.2 * np.cos(4.222 * (t/12 - 1)**2)
+
+def model_c(T, t):
+
+    return k * (T - Ta_c(t))
+
+T_sol_c = odeint(model_c, T0, t)
+T_sol_c = T_sol_c.flatten()
+
+Ta_values_c = Ta_c(t)
+
+diff_c = np.abs(T_sol_c - Ta_values_c)
+idx_c = np.where(diff_c < 0.01)[0]
+
+if len(idx_c) > 0:
+    t_amb_c = t[idx_c[0]]
+    print(f"INCISO C: Tiempo para alcanzar temperatura ambiente: {t_amb_c:.2f} horas")
+    print(f"Esto ocurre a las {t_amb_c:.2f} horas desde las 7:00 pm")
+else:
+    print("INCISO C: No se alcanza temperatura ambiente en el tiempo simulado")
+    t_amb_c = None
+
+plt.figure(figsize=(12, 6))
+plt.plot(t, T_sol_c, 'b-', linewidth=2, label='T(t) del cuerpo')
+plt.plot(t, Ta_values_c, 'r--', linewidth=2, label='T_a(t) ambiente')
+plt.axhline(y=29.2, color='g', linestyle=':', alpha=0.7, label='T_a constante (29.2°C)')
+
+if t_amb_c:
+    plt.axvline(x=t_amb_c, color='k', linestyle='--', alpha=0.7,
+               label=f'T ≈ T_a (t = {t_amb_c:.1f} h)')
+
+plt.xlabel('Tiempo (horas desde 7:00 pm)')
+plt.ylabel('Temperatura (°C)')
+plt.title('Inciso c: Enfriamiento del cuerpo - Ta(t) = 29.2 cos(4.222(t/12 - 1)²)')
+plt.legend()
+plt.grid(True, alpha=0.3)
+plt.show()
